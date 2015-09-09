@@ -3,8 +3,6 @@ package org.tuio
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 
-	import mx.controls.Button;
-
 
 	/**
 	 * <code>TuipFiducialEvent</code> is a high-level implementation of <code>TuioEvent</code> that

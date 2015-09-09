@@ -1,6 +1,7 @@
 package org.tuio.gestures {
 	
 	import flash.display.DisplayObject;
+	import flash.display.Stage;
 	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
 	import flash.utils.getTimer;
@@ -13,6 +14,7 @@ package org.tuio.gestures {
 	public class RotateGesture extends TwoFingerMoveGesture {
 		
 		private var lastAngle:Number;
+		private var lastStage:Stage;
 		
 		/**
 		 * @param	triggerMode The trigger mode changes the behaviour how a rotate gesture is detected. Possible values are <code>TwoFingerMoveGesture.TRIGGER_MODE_MOVE</code> and <code>TwoFingerMoveGesture.TRIGGER_MODE_TOUCH</code>
@@ -22,6 +24,9 @@ package org.tuio.gestures {
 		}
 		
 		public override function dispatchGestureEvent(target:DisplayObject, gsg:GestureStepSequence):void {
+			if (target.stage) {
+				lastStage = target.stage;
+			}
 			var a:TuioContainer = gsg.getTuioContainer("A");
 			var b:TuioContainer = gsg.getTuioContainer("B");
 			var center:Point = new Point((b.x + a.x)/2, (b.y + a.y)/2);
@@ -45,7 +50,7 @@ package org.tuio.gestures {
 			
 			gsg.storeValue("lA", angle);
 			var target:DisplayObject = gsg.getTarget("A");
-			var localPos:Point = target.globalToLocal(new Point(center.x * target.stage.stageWidth, center.y * target.stage.stageHeight));
+			var localPos:Point = target.globalToLocal(new Point(center.x * lastStage.stageWidth, center.y * lastStage.stageHeight));
 			target.dispatchEvent(new TransformGestureEvent(TransformGestureEvent.GESTURE_ROTATE, true, false, null, localPos.x, localPos.y, 0, 0, rotation)); ;
 		}
 		
