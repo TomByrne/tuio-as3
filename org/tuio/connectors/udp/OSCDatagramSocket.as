@@ -17,13 +17,20 @@ package org.tuio.connectors.udp
 		private var Debug:Boolean = true;
 		private var Buffer:ByteArray = new ByteArray();
 		private var PartialRecord:Boolean = false;
+		private var AutoReconnect:Boolean = true;
+		private var Host:String;
+		private var Port:int;
+		private var Bind:Boolean = true;
 		
-		public function OSCDatagramSocket(host:String = "127.0.0.1", port:int = 3333, bind:Boolean = true)
+		public function OSCDatagramSocket(host:String = "127.0.0.1", port:int = 3333, bind:Boolean = true, autoReconnect:Boolean = true)
 		{
+			this.AutoReconnect = autoReconnect;
+			this.Host = host;
+			this.Port = port;
+			this.Bind = bind;
+			
 			configureListeners();
-			if(bind) this.bind(port, host);	
-			else this.connect(host, port);
-			receive();
+			doConnect();
 		}
 		
 		private function configureListeners():void {
@@ -33,13 +40,28 @@ package org.tuio.connectors.udp
 	        addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
 	        addEventListener(DatagramSocketDataEvent.DATA, dataReceived);
 	    }
+		
+		private function doConnect():void 
+		{
+			try {
+				if(Bind) this.bind(Port, Host);	
+				else this.connect(Host, Port);
+				receive();
+			}
+			catch (e:Error) {
+				log(this, "error: " + e);
+			}
+		}
 	    
 		private function dataReceived(event:DatagramSocketDataEvent):void {
 	    	this.dispatchEvent(new OSCEvent(event.data));
 	    }
 	    
 	    private function closeHandler(event:Event):void {
-	        if(Debug)trace("Connection Closed");
+	        if (Debug) trace("Connection Closed");
+			if (AutoReconnect) {
+				doConnect();
+			}
 	    }
 	
 	    private function connectHandler(event:Event):void {

@@ -25,6 +25,7 @@ package org.tuio.connectors
 	{
 		private var connection:OSCDatagramSocket;
 		private var listeners:Array;
+		private var byteArrayPool:Vector.<ByteArray>;
 		
 		/**
 		 * 
@@ -48,6 +49,7 @@ package org.tuio.connectors
 		public function UDPConnector(host:String = "127.0.0.1", port:int = 3333, bind:Boolean = true)
 		{
 			this.listeners = [];
+			byteArrayPool = new Vector.<ByteArray>();
 			
 			this.connection = new OSCDatagramSocket(host, port, bind);
 			this.connection.addEventListener(OSCEvent.OSC_DATA,receiveOscData);
@@ -60,7 +62,7 @@ package org.tuio.connectors
 		 * 
 		 */
 		public function receiveOscData(e:OSCEvent):void {
-			var packet:ByteArray = new ByteArray();
+			/*var packet:ByteArray = new ByteArray();
 			packet.writeBytes(e.data);
 			packet.position = 0;
 			
@@ -84,15 +86,26 @@ package org.tuio.connectors
 				}
 			}
 			
-			packet = null;
+			packet = null;*/
+			var packet:ByteArray = e.data;
+			for each(var l:IOSCConnectorListener in this.listeners) {
+				packet.position = 0;
+				if (OSCBundle.isBundle(packet)) {
+					l.acceptOSCPacket(new OSCBundle(packet));
+				} else if (OSCMessage.isMessage(packet)) {
+					l.acceptOSCPacket(new OSCMessage(packet));
+				} else {
+					//this.debug("\nreceived: invalid osc packet.");
+				}
+			}
 		}
 		
-		private function copyPacket(packet:ByteArray):ByteArray{
+		/*private function copyPacket(packet:ByteArray):ByteArray{
 			var packetCopy:ByteArray = new ByteArray();
 			packetCopy.writeBytes(packet);
 			packetCopy.position = 0;
 			return packetCopy;
-		}
+		}*/
 		
 		/**
 		 * @inheritDoc 
